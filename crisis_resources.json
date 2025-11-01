@@ -1,0 +1,26 @@
+{
+    "immediate_crisis": {
+      "US": {
+        "name": "988 Suicide & Crisis Lifeline",
+        "phone": "988",
+        "sms": "Text 'HELLO' to 741741",
+        "website": "https://988lifeline.org/",
+        "available": "24/7"
+      },
+      "INDIA": {
+        "name": "AASRA",
+        "phone": "+91-9820466726",
+        "email": "aasra@aasra.info",
+        "website": "https://www.aasra.info/",
+        "available": "24/7"
+      },
+      "UK": {
+        "name": "Samaritans",
+        "phone": "116 123",
+        "email": "jo@samaritans.org",
+        "website": "https://www.samaritans.org.uk/",
+        "available": "24/7"
+      }
+    }
+  }
+  
