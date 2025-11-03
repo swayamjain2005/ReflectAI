@@ -1,30 +1,39 @@
-import json
+from supabase import create_client
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-CONVERSATIONS_DIR = "conversations"
+load_dotenv()
 
-if not os.path.exists(CONVERSATIONS_DIR):
-    os.makedirs(CONVERSATIONS_DIR)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 def load_user_conversation(user_id: str):
-    filepath = os.path.join(CONVERSATIONS_DIR, f"{user_id}.json")
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+    response = supabase.table('conversations') \
+        .select('*') \
+        .eq('user_id', user_id) \
+        .order('timestamp', desc=False) \
+        .execute()
 
-def save_user_conversation(user_id: str, conversation):
-    filepath = os.path.join(CONVERSATIONS_DIR, f"{user_id}.json")
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(conversation, f, indent=2, ensure_ascii=False)
+    error = getattr(response, 'error', None)
+    if error:
+        print(f"Error loading conversation: {error.message if hasattr(error, 'message') else str(error)}")
+        return []
 
-def append_to_conversation(user_id: str, role: str, content: str):
-    conversation = load_user_conversation(user_id)
-    conversation.append({
+    return getattr(response, 'data', [])
+
+
+def append_to_conversation(user_id: str, role: str, content: str, session_id=None):
+    response = supabase.table('conversations').insert({
+        "user_id": user_id,
         "role": role,
         "content": content,
-        "timestamp": datetime.utcnow().isoformat()
-    })
-    save_user_conversation(user_id, conversation)
-    return conversation
+        "timestamp": datetime.utcnow().isoformat(),
+        "session_id": session_id
+    }).execute()
+
+    error = getattr(response, 'error', None)
+    if error:
+        print(f"Error appending conversation: {error.message if hasattr(error, 'message') else str(error)}")

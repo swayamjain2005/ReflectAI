@@ -3,7 +3,7 @@ from ethical_modules.safety_checker import EthicalSafetyChecker
 from ethical_modules.bias_detector import BiasDetector
 from ethical_modules.ethics_logger import EthicsLogger
 import random
-import requests
+from groq import Groq  # Use official Groq SDK
 from dotenv import load_dotenv
 from core.chat_memory import load_user_conversation, append_to_conversation
 
@@ -33,26 +33,6 @@ ReflectAI: "Sometimes that mix can feel like your brain throwing a big noisy par
 Remember to adapt your tone based on user cues and maintain ethical boundaries at all times.
 """
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateMessage?key={GOOGLE_API_KEY}"
-
-def query_gemini_with_messages(messages):
-    body = {
-        "prompt": {
-            "messages": messages
-        },
-        "temperature": 0.7,
-        "maxOutputTokens": 300
-    }
-    headers = {
-        "Content-Type": "application/json"
-    }
-    response = requests.post(GEMINI_API_URL, headers=headers, json=body)
-    if response.status_code == 200:
-        data = response.json()
-        return data['candidates'][0]['content']
-    else:
-        return "Sorry, I am having trouble connecting to the support system right now."
 
 HUMOR_TRIGGERS = ["stress", "anxious", "nervous", "worried", "upset"]
 
@@ -80,6 +60,8 @@ class TherapyEngine:
         self.bias_detector = BiasDetector()
         self.logger = EthicsLogger()
         self.user_id = user_id
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        self.groq_client = Groq(api_key=groq_api_key)
 
     def process(self, user_input: str):
         # Humor response shortcut
@@ -111,8 +93,19 @@ class TherapyEngine:
             self.logger.log_crisis_detection(self.user_id, crisis_type, len(user_input))
             return ("I'm sensing you might be in crisis. Here are some resources that might help:\n[Show crisis_resources.json info here]")
 
-        # Query LLM
-        llm_response = query_gemini_with_messages(messages)
+        # Query LLM via Groq
+        try:
+            completion = self.groq_client.chat.completions.create(
+                messages=messages,
+                model="llama-3.3-70b-versatile",  # Adjust model name as needed
+                max_tokens=300,
+                temperature=0.7,
+            )
+            llm_response = completion.choices[0].message.content
+        except Exception as e:
+            # Log the error and respond gracefully
+            self.logger.log_ethical_violation(self.user_id, "llm_request_failed", str(e))
+            return "Sorry, I am having trouble connecting to the support system right now."
 
         # Ethics check
         ethics_result = self.safety_checker.validate_response(llm_response, user_input)
