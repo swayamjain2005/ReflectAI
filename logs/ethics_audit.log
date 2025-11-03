@@ -25,3 +25,15 @@
 {"message": "data_access", "user_id": "18f9e78b-249a-47d0-a92c-30bdcfd796d2", "action": "read", "timestamp": "2025-11-02T15:15:54.415937"}
 {"message": "data_access", "user_id": "18f9e78b-249a-47d0-a92c-30bdcfd796d2", "action": "read", "timestamp": "2025-11-02T15:16:43.879573"}
 {"message": "data_access", "user_id": "18f9e78b-249a-47d0-a92c-30bdcfd796d2", "action": "read", "timestamp": "2025-11-02T15:17:07.326638"}
+{"message": "data_access", "user_id": "498a921a-dae6-43fd-88e6-4abf8790820e", "action": "read", "timestamp": "2025-11-03T09:33:38.508456"}
+{"message": "data_access", "user_id": "1e0318ca-f6e8-45ed-aa33-e5231d71eeb3", "action": "read", "timestamp": "2025-11-03T09:40:09.638262"}
+{"message": "data_access", "user_id": "1e0318ca-f6e8-45ed-aa33-e5231d71eeb3", "action": "read", "timestamp": "2025-11-03T09:42:23.128840"}
+{"message": "data_access", "user_id": "1e0318ca-f6e8-45ed-aa33-e5231d71eeb3", "action": "read", "timestamp": "2025-11-03T09:43:10.476755"}
+{"message": "data_access", "user_id": "1e0318ca-f6e8-45ed-aa33-e5231d71eeb3", "action": "read", "timestamp": "2025-11-03T09:44:03.518755"}
+{"message": "data_access", "user_id": "76b32152-8102-44bf-b7db-1ca0268390e6", "action": "read", "timestamp": "2025-11-03T10:29:06.317738"}
+{"message": "data_access", "user_id": "d46f7d17-2ac9-4d9f-88e9-ee580e7f366a", "action": "read", "timestamp": "2025-11-03T10:34:05.439200"}
+{"message": "data_access", "user_id": "11546319-b5b1-4080-afd3-27c827f360ca", "action": "read", "timestamp": "2025-11-03T10:35:06.585610"}
+{"message": "data_access", "user_id": "11546319-b5b1-4080-afd3-27c827f360ca", "action": "read", "timestamp": "2025-11-03T10:35:43.844459"}
+{"message": "data_access", "user_id": "11546319-b5b1-4080-afd3-27c827f360ca", "action": "read", "timestamp": "2025-11-03T10:36:34.122167"}
+{"message": "ethical_violation_detected", "user_id": "11546319-b5b1-4080-afd3-27c827f360ca", "violation_type": "unsafe_response", "details": "['ETHICAL_VIOLATION: Attempting to diagnose condition']", "timestamp": "2025-11-03T10:40:02.069643"}
+{"message": "ethical_violation_detected", "user_id": "11546319-b5b1-4080-afd3-27c827f360ca", "violation_type": "unsafe_response", "details": "['ETHICAL_VIOLATION: Attempting to diagnose condition']", "timestamp": "2025-11-03T10:40:55.032881"}
