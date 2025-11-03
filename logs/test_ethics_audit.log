@@ -1,4 +1,0 @@
-{"message": "crisis_detected", "user_id": "user1", "crisis_type": "suicide", "timestamp": "2025-10-31T19:01:19.803102", "user_text_length": 44}
-{"message": "ethical_violation_detected", "user_id": "user1", "violation_type": "deceptive_empathy", "details": "Tried to claim feelings.", "timestamp": "2025-10-31T19:01:19.803102"}
-{"message": "data_access", "user_id": "user1", "action": "write", "timestamp": "2025-10-31T19:01:19.803102"}
-{"message": "bias_detected", "bias_type": "gender_stereotype", "severity": "medium", "timestamp": "2025-10-31T19:01:19.803102"}
