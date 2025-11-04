@@ -4,13 +4,53 @@ import os
 import uuid
 from typing import List, Dict, Optional
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from core.therapy_engine_groq import TherapyEngine
+
+# Mount FastAPI endpoints into the same Solara server process
+try:
+    from solara.server.fastapi import app as fastapi_app
+except Exception:
+    # Fallback for environments where solara fastapi app is unavailable
+    fastapi_app = FastAPI(title="ReflectAI API (embedded)")
 
 load_dotenv()
 
 # --- CONFIGURATION ---
-# NOTE: Replace this with the URL of your deployed FastAPI backend (e.g., on Render)
-# Fallback to localhost for local development to avoid None URL
-FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL") or "http://localhost:8765/chat"
+# If running single-service on Render, use same-process route
+# For local dev with separate backend, set FASTAPI_CHAT_URL in env
+FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL") or "/chat"
+
+# --- Embedded FastAPI routes (share process with Solara) ---
+class ChatRequest(BaseModel):
+    user_id: str
+    message: str
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@fastapi_app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
+
+
+@fastapi_app.post("/chat", response_model=ChatResponse)
+def chat(req: ChatRequest):
+    if not req.message or not req.user_id:
+        raise HTTPException(status_code=400, detail="user_id and message are required")
+    try:
+        engine = TherapyEngine(req.user_id)
+        reply = engine.process(req.message)
+        if not isinstance(reply, str) or not reply:
+            raise ValueError("Empty response from engine")
+        return ChatResponse(response=reply)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to process message: {exc}")
 
 # --- MOCK AUTHENTICATION & STATE ---
 # In a real app, this state would be managed by Supabase/WeWeb
