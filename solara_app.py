@@ -9,7 +9,8 @@ load_dotenv()
 
 # --- CONFIGURATION ---
 # NOTE: Replace this with the URL of your deployed FastAPI backend (e.g., on Render)
-FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL")
+# Fallback to localhost for local development to avoid None URL
+FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL") or "http://localhost:8765/chat"
 
 # --- MOCK AUTHENTICATION & STATE ---
 # In a real app, this state would be managed by Supabase/WeWeb
