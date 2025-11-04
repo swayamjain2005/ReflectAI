@@ -6,7 +6,7 @@ from typing import List, Dict, Optional
 
 # --- CONFIGURATION ---
 # NOTE: Replace this with the URL of your deployed FastAPI backend (e.g., on Render)
-FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL", "http://localhost:8765/chat")
+FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL", "https://reflectai-t5u6.onrender.com/chat")
 
 # --- MOCK AUTHENTICATION & STATE ---
 # In a real app, this state would be managed by Supabase/WeWeb
@@ -143,17 +143,6 @@ def ChatBubble(message: Dict[str, str]):
 def ChatInterface():
     """Renders the main chat view."""
     
-    # Function to handle Enter key press
-    def handle_key_down(e):
-        if e['key'] == 'Enter':
-            process_message()
-            
-    # Use HTML to enable Enter key submission on the input field
-    solara.Column(
-        style={"height": "100%", "padding": "0", "flex": 1, "max-width": "100%"}, 
-        gap="15px"
-    )
-
     # Chat Display Area
     with solara.Card(
         elevation=2, 
@@ -167,14 +156,25 @@ def ChatInterface():
                 solara.ProgressLinear(color="#FF7500")
                 solara.Text("ReflectAI is thinking...", style={"color": "#FF7500"})
 
-    # Input Area
+    # Input Area with Enter key support
+    def handle_input_change(value):
+        # Check if Enter was pressed (value contains newline)
+        if '\n' in value and not state.loading.value:
+            # Remove the newline and process
+            clean_value = value.replace('\n', '').strip()
+            if clean_value:
+                state.user_input.value = clean_value
+                process_message()
+        else:
+            state.user_input.value = value
+    
     with solara.Row(style={"width": "100%", "align-items": "center", "display": "flex"}):
         # Input Field
         solara.InputText(
             label="",
             value=state.user_input,
-            on_value=state.user_input.set,
-            placeholder="Share what's on your mind...",
+            on_value=handle_input_change,
+            placeholder="Share what's on your mind... (Press Enter to send)",
             disabled=state.loading.value,
             style={"flex-grow": "1", "border-radius": "20px"}
         )
