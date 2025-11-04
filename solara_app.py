@@ -3,6 +3,9 @@ import requests
 import os
 import uuid
 from typing import List, Dict, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- CONFIGURATION ---
 # NOTE: Replace this with the URL of your deployed FastAPI backend (e.g., on Render)
