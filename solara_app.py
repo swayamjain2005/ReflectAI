@@ -23,6 +23,7 @@ load_dotenv()
 _explicit_url = os.environ.get("FASTAPI_CHAT_URL")
 _render_base = os.environ.get("RENDER_EXTERNAL_URL")
 _port = os.environ.get("PORT", "7860")
+USE_INTERNAL_BACKEND = os.environ.get("USE_INTERNAL_BACKEND", "1")
 if _explicit_url:
     FASTAPI_CHAT_URL = _explicit_url
 elif _render_base:
@@ -115,24 +116,25 @@ def process_message():
         # NOTE: This is where you would integrate REAL Supabase token/ID.
         # For this example, we use a mock session_id for continuity.
         
-        # 2. Prepare the payload for the FastAPI Backend
-        payload = {
-            "user_id": state.session_id.value,
-            "message": input_text,
-            # In production, you would add an auth token here
-            # "token": "your_user_jwt" 
-        }
-
-        # 3. Call the FastAPI Backend
-        response = requests.post(FASTAPI_CHAT_URL, json=payload, timeout=20)
-        response.raise_for_status()
-        
-        # 4. Extract and Add AI Response
-        ai_response = response.json().get("response", "Error: Received empty response from the AI.")
-        state.messages.value = state.messages.value + [{"role": "assistant", "content": ai_response}]
+        if USE_INTERNAL_BACKEND == "1":
+            engine = TherapyEngine(state.session_id.value)
+            ai_response = engine.process(input_text)
+            state.messages.value = state.messages.value + [{"role": "assistant", "content": ai_response}]
+        else:
+            # 2. Prepare the payload for the FastAPI Backend
+            payload = {
+                "user_id": state.session_id.value,
+                "message": input_text,
+            }
+            # 3. Call the FastAPI Backend
+            response = requests.post(FASTAPI_CHAT_URL, json=payload, timeout=20)
+            response.raise_for_status()
+            # 4. Extract and Add AI Response
+            ai_response = response.json().get("response", "Error: Received empty response from the AI.")
+            state.messages.value = state.messages.value + [{"role": "assistant", "content": ai_response}]
 
     except requests.exceptions.RequestException as e:
-        error_msg = f"API Error. Please check if your FastAPI backend is running at {FASTAPI_CHAT_URL}. Details: {e}"
+        error_msg = f"API Error. Check backend at {FASTAPI_CHAT_URL}. Details: {str(e)}"
         state.messages.value = state.messages.value + [{"role": "system", "content": error_msg}]
     except Exception as e:
         state.messages.value = state.messages.value + [{"role": "system", "content": f"An unexpected error occurred: {e}"}]
@@ -189,7 +191,10 @@ def ChatBubble(message: Dict[str, str]):
             "margin-right": "auto",
         }
         
-    solara.Markdown(content, style=style)
+    if role == "system":
+        solara.Text(content, style=style)
+    else:
+        solara.Markdown(content, style=style)
 
 @solara.component
 def ChatInterface():
