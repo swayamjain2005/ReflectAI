@@ -25,6 +25,8 @@ The Solara UI will POST to `http://localhost:8765/chat` by default (configurable
 
 ### Environment
 - `GOOGLE_API_KEY`: API key for Google Generative Language API.
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_KEY`: Your Supabase service role or anon key (writes require appropriate role)
 
 ### Notes
 - If you deploy separately, set `FASTAPI_CHAT_URL` in the environment where Solara runs.

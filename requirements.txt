@@ -4,4 +4,5 @@ solara==1.54.0
 solara-server==1.54.0
 requests==2.32.5
 python-dotenv==1.2.1
+supabase==2.6.0
 python-json-logger==4.0.0
