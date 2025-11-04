@@ -6,7 +6,7 @@ from typing import List, Dict, Optional
 
 # --- CONFIGURATION ---
 # NOTE: Replace this with the URL of your deployed FastAPI backend (e.g., on Render)
-FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL", "https://reflectai-t5u6.onrender.com/chat")
+FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL")
 
 # --- MOCK AUTHENTICATION & STATE ---
 # In a real app, this state would be managed by Supabase/WeWeb
