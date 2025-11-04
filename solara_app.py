@@ -18,9 +18,17 @@ except Exception:
 load_dotenv()
 
 # --- CONFIGURATION ---
-# If running single-service on Render, use same-process route
-# For local dev with separate backend, set FASTAPI_CHAT_URL in env
-FASTAPI_CHAT_URL = os.environ.get("FASTAPI_CHAT_URL") or "/chat"
+# Build an absolute URL for requests: prefer explicit FASTAPI_CHAT_URL,
+# then RENDER_EXTERNAL_URL, else fall back to localhost and PORT.
+_explicit_url = os.environ.get("FASTAPI_CHAT_URL")
+_render_base = os.environ.get("RENDER_EXTERNAL_URL")
+_port = os.environ.get("PORT", "7860")
+if _explicit_url:
+    FASTAPI_CHAT_URL = _explicit_url
+elif _render_base:
+    FASTAPI_CHAT_URL = _render_base.rstrip("/") + "/chat"
+else:
+    FASTAPI_CHAT_URL = f"http://127.0.0.1:{_port}/chat"
 
 # --- Embedded FastAPI routes (share process with Solara) ---
 class ChatRequest(BaseModel):
