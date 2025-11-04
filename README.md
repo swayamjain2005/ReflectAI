@@ -2,7 +2,7 @@
 
 ### Prerequisites
 - Python 3.10+
-- GROQ_API_KEY set in your environment (for LLM responses)
+- GOOGLE_API_KEY set in your environment (for LLM responses)
 
 ### Install
 ```bash
@@ -24,7 +24,7 @@ solara run solara_app.py --host 0.0.0.0 --port 7860
 The Solara UI will POST to `http://localhost:8765/chat` by default (configurable via `FASTAPI_CHAT_URL`).
 
 ### Environment
-- `GROQ_API_KEY`: API key for Groq SDK.
+- `GOOGLE_API_KEY`: API key for Google Generative Language API.
 
 ### Notes
 - If you deploy separately, set `FASTAPI_CHAT_URL` in the environment where Solara runs.

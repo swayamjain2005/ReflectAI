@@ -3,7 +3,7 @@ from ethical_modules.safety_checker import EthicalSafetyChecker
 from ethical_modules.bias_detector import BiasDetector
 from ethical_modules.ethics_logger import EthicsLogger
 import random
-from groq import Groq  # Use official Groq SDK
+import requests
 from dotenv import load_dotenv
 from core.chat_memory import load_user_conversation, append_to_conversation
 
@@ -63,8 +63,8 @@ class TherapyEngine:
         self.bias_detector = BiasDetector()
         self.logger = EthicsLogger()
         self.user_id = user_id
-        groq_api_key = os.getenv("GROQ_API_KEY")
-        self.groq_client = Groq(api_key=groq_api_key)
+        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        self.gemini_api_url = "https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateMessage"
 
     def process(self, user_input: str):
         # Humor response shortcut
@@ -96,17 +96,34 @@ class TherapyEngine:
             self.logger.log_crisis_detection(self.user_id, crisis_type, len(user_input))
             return ("I'm sensing you might be in crisis. Here are some resources that might help:\n[Show crisis_resources.json info here]")
 
-        # Query LLM via Groq
+        # Query LLM via Google Generative Language API (Gemini family)
         try:
-            completion = self.groq_client.chat.completions.create(
-                messages=messages,
-                model="llama-3.3-70b-versatile",  # Adjust model name as needed
-                max_tokens=300,
-                temperature=0.7,
+            request_body = {
+                "prompt": {
+                    "messages": messages
+                },
+                "temperature": 0.7,
+                "maxOutputTokens": 300
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.google_api_key}"
+            }
+            response = requests.post(self.gemini_api_url, headers=headers, json=request_body, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract a basic text from response; structure may vary by model/version
+            # Fallback to raw text if specific fields aren't present
+            llm_response = (
+                data.get("candidates", [{}])[0].get("content")
+                or data.get("output", "")
+                or data.get("text", "")
+                or ""
             )
-            llm_response = completion.choices[0].message.content
+            if not llm_response:
+                llm_response = "I'm sorry, I couldn't generate a response right now."
         except Exception as e:
-            # Log the error and respond gracefully
             self.logger.log_ethical_violation(self.user_id, "llm_request_failed", str(e))
             return "Sorry, I am having trouble connecting to the support system right now."
 
