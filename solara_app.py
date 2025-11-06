@@ -220,19 +220,18 @@ def ChatInterface():
                 solara.ProgressLinear(color="#FF7500")
                 solara.Text("ReflectAI is thinking...", style={"color": "#FF7500"})
 
-    # Input Area with Enter key support
+    # Input change: keep it simple and update state
     def handle_input_change(value):
-        # Check if Enter was pressed (value contains newline)
-        if '\n' in value and not state.loading.value:
-            # Remove the newline and process
-            clean_value = value.replace('\n', '').strip()
-            if clean_value:
-                state.user_input.value = clean_value
-                process_message()
-        else:
-            state.user_input.value = value
+        state.user_input.value = value
     
     with solara.Row(style={"width": "100%", "align-items": "center", "display": "flex"}):
+        # Enter-to-send: global key binding inside the chat view
+        try:
+            solara.use_key("Enter", lambda: (not state.loading.value and state.user_input.value.strip()) and process_message())
+        except Exception:
+            # If key hook unavailable, button still works
+            pass
+
         # Input Field
         solara.InputText(
             label="",
