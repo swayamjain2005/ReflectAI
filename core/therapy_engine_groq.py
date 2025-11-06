@@ -4,6 +4,7 @@ from ethical_modules.bias_detector import BiasDetector
 from ethical_modules.ethics_logger import EthicsLogger
 import random
 import requests
+from google import genai
 from dotenv import load_dotenv
 from core.chat_memory import load_user_conversation, append_to_conversation
 
@@ -63,8 +64,17 @@ class TherapyEngine:
         self.bias_detector = BiasDetector()
         self.logger = EthicsLogger()
         self.user_id = user_id
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        # Prefer GEMINI_API_KEY per google-genai docs; fallback to GOOGLE_API_KEY
+        self.google_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.gemini_api_url = "https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateMessage"
+        # Initialize official Google GenAI client when possible
+        self.genai_client = None
+        if self.google_api_key:
+            try:
+                os.environ.setdefault("GEMINI_API_KEY", self.google_api_key)
+                self.genai_client = genai.Client()
+            except Exception:
+                self.genai_client = None
 
     def process(self, user_input: str):
         # Humor response shortcut
@@ -96,45 +106,54 @@ class TherapyEngine:
             self.logger.log_crisis_detection(self.user_id, crisis_type, len(user_input))
             return ("I'm sensing you might be in crisis. Here are some resources that might help:\n[Show crisis_resources.json info here]")
 
-        # Query LLM via Google Generative Language API (Gemini family)
+        # Query LLM via official google-genai SDK (preferred). Fallback to REST if needed.
         try:
             if not self.google_api_key:
-                raise RuntimeError("Missing GOOGLE_API_KEY in environment")
+                raise RuntimeError("Missing GEMINI_API_KEY/GOOGLE_API_KEY in environment")
 
-            request_body = {
-                "prompt": {
-                    "messages": messages
-                },
-                "temperature": 0.7,
-                "maxOutputTokens": 300
-            }
+            # Build a single prompt from system + conversation for SDK simplicity
+            conversation_text = []
+            for m in messages:
+                role = m.get("role", "user")
+                content = m.get("content", "")
+                conversation_text.append(f"{role.upper()}: {content}")
+            prompt = "\n".join(conversation_text)
 
-            # Prefer API key via query param for Generative Language API
-            url = f"{self.gemini_api_url}?key={self.google_api_key}"
-            headers = {
-                "Content-Type": "application/json"
-            }
-            response = requests.post(url, headers=headers, json=request_body, timeout=30)
-
-            # Capture non-2xx with details
-            if not response.ok:
-                try:
-                    err_json = response.json()
-                except Exception:
-                    err_json = {"error": response.text}
-                raise RuntimeError(f"Google API error {response.status_code}: {err_json}")
-
-            data = response.json()
-
-            # Extract a basic text from response; structure may vary by model/version
-            llm_response = (
-                data.get("candidates", [{}])[0].get("content")
-                or data.get("output", "")
-                or data.get("text", "")
-                or ""
-            )
-            if not llm_response:
-                llm_response = "I'm sorry, I couldn't generate a response right now."
+            if self.genai_client is not None:
+                sdk_response = self.genai_client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                )
+                llm_response = getattr(sdk_response, "text", None) or ""
+                if not llm_response:
+                    llm_response = "I'm sorry, I couldn't generate a response right now."
+            else:
+                # Fallback to REST
+                request_body = {
+                    "prompt": {
+                        "messages": messages
+                    },
+                    "temperature": 0.7,
+                    "maxOutputTokens": 300
+                }
+                url = f"{self.gemini_api_url}?key={self.google_api_key}"
+                headers = {"Content-Type": "application/json"}
+                response = requests.post(url, headers=headers, json=request_body, timeout=30)
+                if not response.ok:
+                    try:
+                        err_json = response.json()
+                    except Exception:
+                        err_json = {"error": response.text}
+                    raise RuntimeError(f"Google API error {response.status_code}: {err_json}")
+                data = response.json()
+                llm_response = (
+                    data.get("candidates", [{}])[0].get("content")
+                    or data.get("output", "")
+                    or data.get("text", "")
+                    or ""
+                )
+                if not llm_response:
+                    llm_response = "I'm sorry, I couldn't generate a response right now."
         except Exception as e:
             self.logger.log_ethical_violation(self.user_id, "llm_request_failed", str(e))
             return "Sorry, I am having trouble connecting to the support system right now."
