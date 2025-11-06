@@ -202,8 +202,15 @@ def ChatInterface():
     
     # Chat Display Area
     with solara.Card(
-        elevation=2, 
-        style={"height": "70vh", "overflow-y": "auto", "padding": "15px", "flex-grow": 1}
+        elevation=6,
+        style={
+            "height": "70vh",
+            "overflow-y": "auto",
+            "padding": "20px",
+            "flex-grow": 1,
+            "border-radius": "16px",
+            "background": "linear-gradient(180deg, #ffffff 0%, #fafafa 100%)",
+        }
     ):
         with solara.Column(align="stretch"):
             for msg in state.messages.value:
@@ -233,16 +240,26 @@ def ChatInterface():
             on_value=handle_input_change,
             placeholder="Share what's on your mind... (Press Enter to send)",
             disabled=state.loading.value,
-            style={"flex-grow": "1", "border-radius": "20px"}
+            style={
+                "flex-grow": "1",
+                "border-radius": "24px",
+                "padding": "10px 14px",
+                "border": "1px solid #E2E8F0",
+                "background": "#ffffff",
+            }
         )
         
         # Send Button
         solara.Button(
             label="Send",
-            on_click=process_message,
-            color="#4FD1C5", # Teal accent
+            on_click=lambda: process_message(),
+            color="#4FD1C5",
             disabled=state.loading.value or not state.user_input.value.strip(),
-            style={"border-radius": "20px", "padding": "10px 20px"}
+            style={
+                "border-radius": "24px",
+                "padding": "10px 20px",
+                "box-shadow": "0 2px 6px rgba(0,0,0,0.08)",
+            }
         )
 
 @solara.component
@@ -317,19 +334,49 @@ def Page():
         return
 
     # --- Sidebar Navigation ---
-    with solara.Sidebar(): # FIX: Removed style keyword argument
-        solara.Markdown(f"**Hello, {state.username.value}**", style={"padding": "10px"})
+    with solara.Sidebar():
+        solara.Div(style={
+            "padding": "14px",
+            "background": "linear-gradient(180deg, #1a202c 0%, #2d3748 100%)",
+            "border-radius": "12px",
+            "color": "#E2E8F0",
+        })
+        solara.Markdown(
+            f"**Hello, {state.username.value}**",
+            style={"padding": "10px", "color": "#E2E8F0"}
+        )
         SeparatorLine() # Using the new robust component
         
-        solara.Button("💬 Start New Chat", on_click=start_new_session, color="secondary", style={"width": "100%", "margin-bottom": "10px"})
+        solara.Button(
+            "💬 Start New Chat",
+            on_click=start_new_session,
+            color="secondary",
+            style={
+                "width": "100%",
+                "margin-bottom": "10px",
+                "border-radius": "10px",
+                "background": "#2B6CB0",
+                "color": "#fff",
+            }
+        )
         SeparatorLine() # Using the new robust component
         
-        solara.Button("📄 Ethics & Safety Guide", on_click=lambda: state.current_view.set("ethics"), color="secondary", style={"width": "100%", "margin-bottom": "10px"})
-        solara.Button("🖤 About ReflectAI", on_click=lambda: state.current_view.set("about"), color="secondary", style={"width": "100%", "margin-bottom": "10px"})
+        solara.Button(
+            "📄 Ethics & Safety Guide",
+            on_click=lambda: state.current_view.set("ethics"),
+            color="secondary",
+            style={"width": "100%", "margin-bottom": "10px", "border-radius": "10px"}
+        )
+        solara.Button(
+            "🖤 About ReflectAI",
+            on_click=lambda: state.current_view.set("about"),
+            color="secondary",
+            style={"width": "100%", "margin-bottom": "10px", "border-radius": "10px"}
+        )
         SeparatorLine() # Using the new robust component
         
-        solara.Text(f"Session ID: {state.session_id.value[:8]}...")
-        solara.Text(f"User: {state.username.value}", style={"font-size": "0.8em"})
+        solara.Text(f"Session ID: {state.session_id.value[:8]}...", style={"color": "#CBD5E0"})
+        solara.Text(f"User: {state.username.value}", style={"font-size": "0.8em", "color": "#A0AEC0"})
 
     # --- Main Content Renderer ---
     
@@ -365,7 +412,13 @@ def Page():
         StaticPage(title="About ReflectAI", content_markdown=about_content)
     else:
         # Chat View
-        with solara.Column(style={"padding": "20px"}, gap="15px", align="stretch"):
-            solara.Markdown(f"# 🖤 ReflectAI", style={"color": "#FF7500", "font-weight": "700"})
-            solara.Markdown("Your compassionate digital wellness companion", style={"margin-bottom": "20px"})
+        with solara.Column(style={"padding": "24px"}, gap="16px", align="stretch"):
+            solara.Markdown(
+                f"# 🖤 ReflectAI",
+                style={"color": "#FF7500", "font-weight": "700", "margin": "0"}
+            )
+            solara.Text(
+                "Your compassionate digital wellness companion",
+                style={"margin-bottom": "8px", "color": "#4A5568"}
+            )
             ChatInterface()
