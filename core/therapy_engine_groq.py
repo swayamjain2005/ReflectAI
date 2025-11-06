@@ -98,6 +98,9 @@ class TherapyEngine:
 
         # Query LLM via Google Generative Language API (Gemini family)
         try:
+            if not self.google_api_key:
+                raise RuntimeError("Missing GOOGLE_API_KEY in environment")
+
             request_body = {
                 "prompt": {
                     "messages": messages
@@ -105,16 +108,25 @@ class TherapyEngine:
                 "temperature": 0.7,
                 "maxOutputTokens": 300
             }
+
+            # Prefer API key via query param for Generative Language API
+            url = f"{self.gemini_api_url}?key={self.google_api_key}"
             headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.google_api_key}"
+                "Content-Type": "application/json"
             }
-            response = requests.post(self.gemini_api_url, headers=headers, json=request_body, timeout=30)
-            response.raise_for_status()
+            response = requests.post(url, headers=headers, json=request_body, timeout=30)
+
+            # Capture non-2xx with details
+            if not response.ok:
+                try:
+                    err_json = response.json()
+                except Exception:
+                    err_json = {"error": response.text}
+                raise RuntimeError(f"Google API error {response.status_code}: {err_json}")
+
             data = response.json()
 
             # Extract a basic text from response; structure may vary by model/version
-            # Fallback to raw text if specific fields aren't present
             llm_response = (
                 data.get("candidates", [{}])[0].get("content")
                 or data.get("output", "")
