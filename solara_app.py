@@ -253,7 +253,7 @@ def ChatInterface():
             label="Send",
             on_click=lambda: process_message(),
             color="#4FD1C5",
-            disabled=state.loading.value or not state.user_input.value.strip(),
+            disabled=state.loading.value,
             style={
                 "border-radius": "24px",
                 "padding": "10px 20px",
